@@ -47,7 +47,7 @@ def buscar_actualizaciones_sf(data_mod_max_psql, objeto_standard, objeto):
 #&& FIN Obtiene los datos de SF cuando la fecha sea mayor a la "ultima modificacion" de PSQL &&#
 
 #&& Inserta y Actualiza los datos en PSQL &&#
-def realizar_upsert_psql(conexion, data_sf_upd_new, objeto, objeto_standard,data_max_mod_psql_to_date_sf, id_all_psql, opc_elec):
+def realizar_upsert_psql(conexion, data_sf_upd_new, objeto, objeto_standard,date_max_mod_psql_to_date_sf, id_all_psql, opc_elec):
     #cursor = conexion.cursor() # Crear cursor
     data_update_psql, data_insert_psql = [], []
 
@@ -59,24 +59,24 @@ def realizar_upsert_psql(conexion, data_sf_upd_new, objeto, objeto_standard,data
                 sf
             )
         else:
-            sf = cambiar_id_al_final(sf)
             data_insert_psql.append(
                 sf # buscar a sf
             )
 
+    cursor = conexion.cursor()
     if len(data_update_psql) != 0:
-        update_query(conexion, data_update_psql, objeto, objeto_standard, opc_elec)
+        update_query(cursor, conexion, data_update_psql, objeto, objeto_standard, opc_elec)
     else:
         print("No existen datos para actualizar")
     
     if len(data_insert_psql) != 0:
-        insert_query(conexion, data_insert_psql, objeto, objeto_standard, opc_elec)
+        insert_query(cursor, conexion, data_insert_psql, objeto, objeto_standard, opc_elec)
     else:
         print("No existen datos nuevos")
 #&& FIN Inserta y Actualiza los datos en PSQL &&#
 
 #~~ Actualizacion de cuentas ~~#
-def update_query(conexion, data_update_psql, objeto, objeto_standard, opc_elec):
+def update_query(cursor, conexion, data_update_psql, objeto, objeto_standard, opc_elec):
     status_query = 'update'
     campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query)
     update_fields = '\n'.join([f"{x} = {y}" for x,y in zip(campos_objeto, s)])
@@ -86,7 +86,6 @@ def update_query(conexion, data_update_psql, objeto, objeto_standard, opc_elec):
     set {update_fields}
     where Id = %s
     """
-    cursor = conexion.cursor()
     cursor.executemany(query_update, data_update_psql)
     
     cant_registros = int(cursor.rowcount)
@@ -94,16 +93,17 @@ def update_query(conexion, data_update_psql, objeto, objeto_standard, opc_elec):
     conexion.commit()
 #~~ FIN Actualizacion de cuentas ~~#
 
-# todo Creacion funcion insert
 #~~ Creacion de cuentas nuevas ~~#
-def insert_query(conexion, data_update_psql, objeto, objeto_standard, opc_elec):
+def insert_query(cursor, conexion, data_insert_psql, objeto, objeto_standard, opc_elec):
     status_query = 'insert'
     campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query)
-    update_fields = '\n'.join([f"{x} = {y}" for x,y in zip(campos_objeto, s)])
-    print(f'\nTEST\n******\n{campos_objeto}\n******\nPRINT\n')
-    print(f'\nTEST\n******\n{s}\n******\nPRINT\n')
-    print(f'\nTEST\n******\n{update_fields}\n******\nPRINT\n')
-    
-    breakpoint() #^ TestPrint
-    
+
+    query_insert = f"""
+    INSERT INTO etl.{str(objeto_standard).lower()} ({str(campos_objeto).lower()}) VALUES ({s});
+    """
+
+    cursor.executemany(query_insert, data_insert_psql)
+    cant_registros = int(cursor.rowcount)
+    print(f"Se insertaron {cant_registros} filas de Salesforce a postgreSQL, en la tabla {objeto_standard}")
+    conexion.commit()    
 #~~ FIN Creacion de cuentas nuevas ~~#
