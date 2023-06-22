@@ -1,2 +1,10 @@
-.env
-test/
+# Ignorar archivo env
+/test
+
+# Ignorar todas las carpetas "__pycache__" de cualquier carpeta
+**/__pycache__
+
+# Ignorar el archivo .env, ya que tiene las credenciales
+/con/.env
+
+test*

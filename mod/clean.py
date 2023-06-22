@@ -1,5 +1,5 @@
-from etl_mod_data_type import VARCHAR, INT, FLOAT, BOOL, TIMESTAMP, TIME, DATE
-from etl_mod_data_selected import *
+from data.data_field_type import VARCHAR, INT, FLOAT, BOOL, TIMESTAMP, TIME, DATE
+from data.data_selected import *
 
 #^ Funciones limpieza salesforce
 def datatype_correct(tipo): # Modifica el tipo de dato acorde a PSQL
@@ -25,18 +25,21 @@ def sf_objeto_opciones(objeto_opc):
         opciones = 'Event','sf_event'
     elif objeto_opc == 7: # AccountHistory
         opciones = 'AccountHistory','sf_accounthistory'
-    elif objeto_opc == 8: # Campaign__c
+    elif objeto_opc == 8: # User
+        opciones = 'User','sf_user'
+    elif objeto_opc == 9: # Campaign__c
         opciones = 'Campaign__c','sf_campaign'
-    elif objeto_opc == 9: # CampaignMember__c
+    elif objeto_opc == 10: # CampaignMember__c
         opciones = 'CampaignMember__c','sf_campaignmember'
     else:
         opciones = objeto_opc,'Numero Invalido'
-
+    
     return opciones
+    
 
 #^ funcion de seleccionar campos de la lista data selected
 def sel_list_objeto(objeto_standard):    
-    return sf_account if objeto_standard == 'sf_account' else sf_subcuenta if objeto_standard == 'sf_subcuenta' else sf_opportunity if objeto_standard == 'sf_opportunity' else sf_transacci_n if objeto_standard == 'sf_transacci_n' else sf_task if objeto_standard == 'sf_task' else sf_event if objeto_standard == 'sf_event' else sf_accounthistory if objeto_standard == 'sf_accounthistory' else sf_campaign if objeto_standard == 'sf_campaign' else sf_campaignmember if objeto_standard == 'sf_campaignmember' else 'error'
+    return sf_account if objeto_standard == 'sf_account' else sf_subcuenta if objeto_standard == 'sf_subcuenta' else sf_opportunity if objeto_standard == 'sf_opportunity' else sf_transacci_n if objeto_standard == 'sf_transacci_n' else sf_task if objeto_standard == 'sf_task' else sf_event if objeto_standard == 'sf_event' else sf_accounthistory if objeto_standard == 'sf_accounthistory' else sf_campaign if objeto_standard == 'sf_campaign' else sf_campaignmember if objeto_standard == 'sf_campaignmember' else sf_user if objeto_standard == 'sf_user' else 'error'
 
 #^ Estandarizar fecha SF a fecha PSQL - formato YYYY-MM-DD HH:MM:SS
 def standard_fix_date_sf(date_sf):
@@ -47,3 +50,21 @@ def standard_fix_date_sf(date_sf):
 #^ Estandarizar fecha Maxima de PSQL a SF - formato YYYY-MM-DDTHH:MM:SS.000Z
 def date_standard_sf(data_max_psql):
     return data_max_psql[:str(data_max_psql).rfind(' ')]+'T'+data_max_psql[str(data_max_psql).rfind(' ')+1:]+'.000Z'
+
+#^ Se pasa el ID al final en una tupla, para poder actualizar
+def cambiar_id_al_final(data_sf):
+    data_sf = list(data_sf) # transformo la tupla sf, a lista
+    id = data_sf.pop(0) # le quito el id y almaceno el indice 0 que es el 'Id' en variable id
+    data_sf.append(id) # le agrego el id al final de la lista
+    data_sf = tuple(data_sf) # transformo la lista a tupla
+
+    return data_sf
+
+#^ Quito el ID de los campos y un '%s', ademas lo dejo en lista, para poder actualizar
+def quitar_id_s_dejarlo_en_lista(campos_objeto, s):
+    campos_objeto = campos_objeto.split(',') # lo transformo a lista
+    campos_objeto.pop(0) # le quito el indice
+    s = s[:len(s)-4] # le quito la ultimo '%s,
+    s = s.split(' ')
+
+    return campos_objeto, s
