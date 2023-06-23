@@ -83,8 +83,11 @@ def comparar_ids_psql_sf(all_ids_psql, all_ids_sf):
     #* Listas para mostrar
     id_del_psql_view = ", ".join([id for id in all_ids_psql if id not in all_ids_sf])
     id_rest_psql_view = ", ".join([id for id in all_ids_sf if id not in all_ids_psql])
+    
+    #* Obtiene los ids para consultar en SF
+    id_rest_psql_for_sf = ", ".join([f"'{id}'" for id in all_ids_sf if id not in all_ids_psql])
 
-    return id_del_psql, id_rest_psql, ids_repetidos, id_del_psql_view, id_rest_psql_view
+    return id_del_psql, id_rest_psql, ids_repetidos, id_del_psql_view, id_rest_psql_view, id_rest_psql_for_sf
 
 #^ list -> tupla -> lista(tupla()) = Constructor de cadenas para PSQL
 def ids_listatupla(lista_a_tupla):

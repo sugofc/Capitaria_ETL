@@ -16,9 +16,14 @@ def sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query):
     s = len(sel_list_objeto(objeto_standard)) * "%s, "
     s = s[:len(s)-2] # le quito la el ultimo ', '
 
-    if opc_elec == 3:
+    if opc_elec == 3 or opc_elec == 4:
         # Query a SOQL - Salesforce
-        result = sf().query(f"Select {', '.join(x for x in sel_list_objeto(objeto_standard))} from {objeto}") 
+        if opc_elec == 3: 
+            result = sf().query(f"Select {', '.join(x for x in sel_list_objeto(objeto_standard))} from {objeto}") 
+        elif opc_elec == 4:
+            id_rest_psql_for_sf = status_query
+            result = sf().query(f"Select {', '.join(x for x in sel_list_objeto(objeto_standard))} from {objeto} where Id in ({id_rest_psql_for_sf})")
+
         records = result['records']
         
         data_sf_campos = []
@@ -56,7 +61,7 @@ def insertar_registros_psql(conexion, sf_registros_pg, objeto_standard, campos_o
     conexion.commit()
 #&& ---------------- FIN INSERTAR FILAS DE SALESFORCE A POSTGRESQL ---------------- &&#
 
-#~ ---------------- FUCION QUE OBTIENE LOS DATOS PARA LA INSERCION ---------------- ~#
+#~ ---------------- FUNCION QUE OBTIENE LOS DATOS PARA LA INSERCION ---------------- ~#
 def obtener_datos_objeto(objeto, objeto_standard):
 
     # Query a SOQL - Salesforce
@@ -77,7 +82,5 @@ def obtener_datos_objeto(objeto, objeto_standard):
     s = s[:len(s)-2] # sirve para la BD
     
     return data_sf_campos, campos_objeto, s #? sf_obtener_datos
-
-
-#~ ---------------- FIN FUCION QUE OBTIENE LOS DATOS PARA LA INSERCION ---------------- ~#
+#~ ---------------- FIN FUNCION QUE OBTIENE LOS DATOS PARA LA INSERCION ---------------- ~#
 

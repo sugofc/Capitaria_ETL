@@ -7,7 +7,8 @@ etl()
 #breakpoint()
 from con.connection import sf
 from mod.explain import explain_diff_ids
-from mod.clean import comparar_ids_psql_sf
+from mod.clean import comparar_ids_psql_sf, sel_list_objeto
+from crud.insert_data import sf_obtener_datos
 
 # el campo IsDeleted no funciona, solo funciona con la API de ETL 
 
@@ -27,16 +28,17 @@ def corrige_data_psql(conexion, objeto, objeto_standard):
     all_ids_sf = [id['Id'] for id in ids_sf]
     
     # Compara los IDS
-    id_del_psql, id_rest_psql, ids_repetidos, id_del_psql_view, id_rest_psql_view = comparar_ids_psql_sf(all_ids_psql, all_ids_sf)
+    id_del_psql, id_rest_psql, ids_repetidos, id_del_psql_view, id_rest_psql_view, id_rest_psql_for_sf = comparar_ids_psql_sf(all_ids_psql, all_ids_sf)
 
     # Elimina los ids de PSQL que se hayan eliminado en SF
-    elimina_registros_psql(conexion, objeto_standard, id_del_psql)
+    #!elimina_registros_psql(conexion, objeto_standard, id_del_psql)
     
+    #todo trabajando AQUI
     # Restaura los ids en PSQL y que si esitan en SF
-    #restaura_registros_psql(conexion, objeto_standard, id_rest_psql)
+    restaura_registros_psql(sf, conexion, objeto, objeto_standard, id_rest_psql, id_rest_psql_for_sf)
     
     # Explica en numeros los ID's
-    print(explain_diff_ids(id_del_psql, id_rest_psql, ids_repetidos, all_ids_psql, all_ids_sf, objeto, objeto_standard, id_del_psql_view, id_rest_psql_view))
+    #!print(explain_diff_ids(id_del_psql, id_rest_psql, ids_repetidos, all_ids_psql, all_ids_sf, objeto, objeto_standard, id_del_psql_view, id_rest_psql_view))
     
 #&& FIN Funcion que permite verificar (en numero) los ID's &&#
     
@@ -57,6 +59,19 @@ def elimina_registros_psql(conexion, objeto_standard, id_del_psql):
 #&& FIN Funcion que permite realizar el ELIMINAR registros de PSQL que NO esten en SF &&#
 
 #&& Funcion que permite realizar RESTAURACION de registros de PSQL que SI esten en SF &&#
-def restaura_registros_psql(conexion, objeto_standard, id_rest_psql):
-    pass
+def restaura_registros_psql(sf, conexion, objeto, objeto_standard, id_rest_psql, id_rest_psql_for_sf):
+    
+    sf_obtener_datos(objeto, objeto_standard, opc_elec = 4, status_query = id_rest_psql_for_sf)
+
+    result = sf().query(f"Select {', '.join(x for x in sel_list_objeto(objeto_standard))} from {objeto} where Id in ({id_rest_psql_for_sf})") 
+    records = result['records']
+
+    data_sf_campos = []
+
+    for rec in records:
+        data_sf_campos.append(
+        tuple(rec[sel_list_objeto(objeto_standard)[x]] for x in range(0,len(sel_list_objeto(objeto_standard))))
+        )
+
+
 #&& FIN Funcion que permite realizar RESTAURACION de registros de PSQL que SI esten en SF &&#
