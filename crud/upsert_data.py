@@ -77,8 +77,7 @@ def realizar_upsert_psql(conexion, data_sf_upd_new, objeto, objeto_standard,date
 
 #~~ Actualizacion de cuentas ~~#
 def update_query(cursor, conexion, data_update_psql, objeto, objeto_standard, opc_elec):
-    status_query = 'update'
-    campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query)
+    campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query = 'update')
     update_fields = '\n'.join([f"{x} = {y}" for x,y in zip(campos_objeto, s)])
 
     query_update = f"""
@@ -95,8 +94,8 @@ def update_query(cursor, conexion, data_update_psql, objeto, objeto_standard, op
 
 #~~ Creacion de cuentas nuevas ~~#
 def insert_query(cursor, conexion, data_insert_psql, objeto, objeto_standard, opc_elec):
-    status_query = 'insert'
-    campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query)
+    
+    campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query = 'insert')
 
     query_insert = f"""
     INSERT INTO etl.{str(objeto_standard).lower()} ({str(campos_objeto).lower()}) VALUES ({s});

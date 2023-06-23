@@ -6,26 +6,27 @@ from crud.upsert_data import psql_obtener_ids_y_fecha_maxima_modificacion, busca
 from crud.insert_data import sf_obtener_datos, insertar_registros_psql
 from crud.correct_data import corrige_data_psql
 
-# print("""
-#                         SELECCION DE OBJETO
+print("""
+                        SELECCION DE OBJETO
 
-# (1) Account      (2) Subcuenta__c     (3) Opportunity__c       (4) Transacci_n__c
-# (5) Task         (6) Event            (7) AccountHistory       (8) User
-# (9) Campaign__c  (10) CampaignMember__c
-# """)
-# objeto, objeto_standard = sf_objeto_opciones(int(input(f"¿Que Objeto deseas crear? (numero): ")))
+(1) Account      (2) Subcuenta__c     (3) Opportunity__c       (4) Transacci_n__c
+(5) Task         (6) Event            (7) AccountHistory       (8) User
+(9) Campaign__c  (10) CampaignMember__c
+""")
+objeto, objeto_standard = sf_objeto_opciones(int(input(f"¿Que Objeto deseas crear? (numero): ")))
 
-# print(f"""
-# ¿Que desea hacer con el objeto {objeto}?
-# (0) Explicacion
-# (1) Crear tabla {objeto_standard}
-# (2) Realizar Upsert (Update+Insert) en {objeto_standard}
-# (3) Limpiar e Insertar datos (Truncate + Insert) del {objeto_standard}
-# (4) Corregir datos de {objeto_standard}
-# """)
-# opc_elec = int(input("Que desea hacer? (numero): "))
+print(f"""
+¿Que desea hacer con el objeto {objeto}?
+(0) Explicacion
+(1) Crear tabla {objeto_standard}
+(2) Realizar Upsert (Update+Insert) en {objeto_standard}
+(3) Limpiar e Insertar datos (Truncate + Insert) del {objeto_standard}
+(4) Corregir datos de {objeto_standard}
+""")
+opc_elec = int(input("Que desea hacer? (numero): "))
 
-objeto, objeto_standard, opc_elec = 'Account', 'sf_account', 4
+#? Acceso rapido, comentar todo para arriba excepto los import
+#objeto, objeto_standard, opc_elec = 'Account', 'sf_account', 4
 #objeto, objeto_standard, opc_elec = 'Subcuenta__c', 'sf_subcuenta', 3
 #objeto, objeto_standard, opc_elec = 'AccountHistory', 'sf_accounthistory', 2
 
@@ -49,7 +50,7 @@ try:
         elif opc_elec == 3: #* Truncar Tabla e Insrtar toda la Data
             # C: Obtiene los registros de SF / D: Inserta los registros en la BD
             sf_registros_pg, campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec) #~ C
-            insertar_registros_psql(conexion, sf_registros_pg,objeto_standard, campos_objeto, s) #~ D
+            insertar_registros_psql(conexion, sf_registros_pg,objeto_standard, campos_objeto, s, opc_elec) #~ D
         elif opc_elec == 4: #* Eliminar datos de PSQL que no esten en Salesforce
             corrige_data_psql(conexion, objeto, objeto_standard)
         elif opc_elec == 0: #* Explica las opciones

@@ -44,12 +44,13 @@ def sf_obtener_datos(objeto, objeto_standard, opc_elec, status_query):
 #&& ---------------- FIN OBTIENE FILAS DE SALESFORCE ---------------- &&#
 
 #&& ---------------- INSERTAR FILAS DE SALESFORCE A POSTGRESQL ---------------- &&#
-def insertar_registros_psql(conexion, sf_registros_pg, objeto_standard, campos_objeto, s):
+def insertar_registros_psql(conexion, sf_registros_pg, objeto_standard, campos_objeto, s, opc_elec):
     cursor = conexion.cursor() # Crear cursor
-    
-    query_truncate = f"TRUNCATE TABLE etl.{str(objeto_standard).lower()} CONTINUE IDENTITY RESTRICT;"
-    cursor.execute(query_truncate)
-    conexion.commit()
+
+    if opc_elec == 3:    
+        query_truncate = f"TRUNCATE TABLE etl.{str(objeto_standard).lower()} CONTINUE IDENTITY RESTRICT;"
+        cursor.execute(query_truncate)
+        conexion.commit()
 
     query_insert = f"""
     INSERT INTO etl.{str(objeto_standard).lower()} ({str(campos_objeto).lower()}) VALUES ({s});
@@ -57,7 +58,10 @@ def insertar_registros_psql(conexion, sf_registros_pg, objeto_standard, campos_o
 
     cursor.executemany(query_insert, sf_registros_pg)
     cant_registros = int(cursor.rowcount)
-    print(f"Se insertaron {cant_registros} filas de Salesforce a postgreSQL, en la tabla {objeto_standard}")
+
+    if opc_elec == 3: 
+        print(f"Se insertaron {cant_registros} filas de Salesforce a postgreSQL, en la tabla {objeto_standard}")
+    
     conexion.commit()
 #&& ---------------- FIN INSERTAR FILAS DE SALESFORCE A POSTGRESQL ---------------- &&#
 
