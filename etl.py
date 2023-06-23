@@ -1,32 +1,35 @@
 from con.connection import psql
 from mod.clean import sf_objeto_opciones
+from mod.explain import explain_menu
 from crud.create_object import sf_generacion_objeto, crea_objeto_psql
 from crud.upsert_data import psql_obtener_ids_y_fecha_maxima_modificacion, buscar_actualizaciones_sf, realizar_upsert_psql
 from crud.insert_data import sf_obtener_datos, insertar_registros_psql
-from crud.delete_restore_data import psql_verificar_data_eliminada_sf
+from crud.correct_data import corrige_data_psql
 
 # print("""
 #                         SELECCION DE OBJETO
 
-# 1) Account      2) Subcuenta__c     3) Opportunity__c       4) Transacci_n__c
-# 5) Task         6) Event            7) AccountHistory       8) User
-# 9) Campaign__c  10) CampaignMember__c
+# (1) Account      (2) Subcuenta__c     (3) Opportunity__c       (4) Transacci_n__c
+# (5) Task         (6) Event            (7) AccountHistory       (8) User
+# (9) Campaign__c  (10) CampaignMember__c
 # """)
 # objeto, objeto_standard = sf_objeto_opciones(int(input(f"¿Que Objeto deseas crear? (numero): ")))
 
 # print(f"""
 # ¿Que desea hacer con el objeto {objeto}?
-# 1) Crear tabla {objeto_standard}
-# 2) Realizar Upsert (Update+Insert) en {objeto_standard}
-# 3) Limpiar e Insertar datos (Truncate + Insert) del {objeto_standard}
-# 4) Eliminar datos (Delete) de {objeto_standard} que se hayan eliminado de Salesforce 
-# 5) Restaurar datos que se hayan eliminado de {objeto_standard} pero que existen en Salesforce
+# (0) Explicacion
+# (1) Crear tabla {objeto_standard}
+# (2) Realizar Upsert (Update+Insert) en {objeto_standard}
+# (3) Limpiar e Insertar datos (Truncate + Insert) del {objeto_standard}
+# (4) Corregir datos de {objeto_standard}
 # """)
 # opc_elec = int(input("Que desea hacer? (numero): "))
 
 objeto, objeto_standard, opc_elec = 'Account', 'sf_account', 4
 #objeto, objeto_standard, opc_elec = 'Subcuenta__c', 'sf_subcuenta', 3
 #objeto, objeto_standard, opc_elec = 'AccountHistory', 'sf_accounthistory', 2
+
+#! ALERT: recuerda iniciar la BD en ubuntu XD
 
 try:
     conexion = psql()
@@ -48,8 +51,9 @@ try:
             sf_registros_pg, campos_objeto, s = sf_obtener_datos(objeto, objeto_standard, opc_elec) #~ C
             insertar_registros_psql(conexion, sf_registros_pg,objeto_standard, campos_objeto, s) #~ D
         elif opc_elec == 4: #* Eliminar datos de PSQL que no esten en Salesforce
-            psql_verificar_data_eliminada_sf(conexion, objeto, objeto_standard)
-        conexion.close() # Cierra conexion
+            corrige_data_psql(conexion, objeto, objeto_standard)
+        elif opc_elec == 0: #* Explica las opciones
+            print(explain_menu(objeto, objeto_standard))
     else:
         conexion.rollback() # Regresa todo atras en caso de error
 except psql().Error as e:

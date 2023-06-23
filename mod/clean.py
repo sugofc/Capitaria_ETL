@@ -68,3 +68,29 @@ def quitar_id_s_dejarlo_en_lista(campos_objeto, s):
     s = s.split(' ')
 
     return campos_objeto, s
+
+#^ Obtiene las comparaciones de ID's de SF y PSQL
+def comparar_ids_psql_sf(all_ids_psql, all_ids_sf):
+    
+    #* id_del_psql y id_rest_psql, se transforman en tuplas de 1 valor, dentro de listas para poder ocuparlas en ejecucion de PSQL
+    # Obtenemos los ID's de PSQL que no esten en SF, para saber cual esta eliminado de SF
+    id_del_psql = ids_listatupla([id for id in all_ids_psql if id not in all_ids_sf])
+    # Obtenemos los ID's de SF que no esten en PSQL, para asi poder restaurarlo a PSQL
+    id_rest_psql = ids_listatupla([id for id in all_ids_sf if id not in all_ids_psql])
+    # Los 'ids_repetidos' tambien se puede hacer con un list comprehension
+    ids_repetidos = list(set(all_ids_psql) & set(all_ids_sf))
+
+    #* Listas para mostrar
+    id_del_psql_view = ", ".join([id for id in all_ids_psql if id not in all_ids_sf])
+    id_rest_psql_view = ", ".join([id for id in all_ids_sf if id not in all_ids_psql])
+
+    return id_del_psql, id_rest_psql, ids_repetidos, id_del_psql_view, id_rest_psql_view
+
+#^ list -> tupla -> lista(tupla()) = Constructor de cadenas para PSQL
+def ids_listatupla(lista_a_tupla):
+    lista = []
+    for n, x in enumerate(lista_a_tupla):
+        lista.append([])
+        lista[n] = (x,)
+
+    return lista
